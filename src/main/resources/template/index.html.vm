@@ -1,198 +1,227 @@
-<template>
-  <div class="app-container calendar-list-container">
-    <div class="filter-container">
-      <el-input @keyup.enter.native="handleFilter" style="width: 200px;" class="filter-item" placeholder="姓名或账户" v-model="listQuery.name"> </el-input>
-      <el-button class="filter-item" type="primary" icon="search" @click="handleFilter">搜索</el-button>
-      <el-button class="filter-item"  style="margin-left: 10px;" @click="handleCreate" type="primary" icon="edit">添加</el-button>
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="utf-8" />
+    <title>${comments}</title>
+    <meta name="description" content="${comments}">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="renderer" content="webkit">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <${include} "*/common/html/pageHeader.html"/>
+</head>
+
+<body>
+    <div class="m-main">
+		<section class="panel panel-default">
+			<header class="panel-heading">
+                <h3 class="panel-title">${comments}</h3>
+            </header>
+			<div class="panel-body">
+				<form class="form-inline table-toolbar" id="table-toolbar">
+                    <div class="form-group">
+                        <button type="button" class="btn btn-primary" id="search-submit">查询</button>
+                        <button type="button" class="btn btn-default" id="search-reset">重置</button>
+                    </div>
+                    <div class="form-group pull-right">
+                        <button type="button" class="btn green btn-outline" id="table-add">添加</button>
+                        <button type="button" class="btn red btn-outline" id="table-delete">删除</button>
+                    </div>
+                </form>
+				<table class="table table-bordered table-advance table-hover my-table" id="data-table">
+                    <thead>
+                        <tr>
+                            <th>
+                                <label class="mt-checkbox mt-checkbox-outline">
+                                    <input type="checkbox" class="group-checkable" value="1" name="test" id="checkall"/>
+                                    <span></span>
+                                </label>
+                            </th>
+                            #foreach($column in $columns)
+                            	#if($column.columnName != 'id')
+	<th>${column.comments}</th>
+                            	#end
+							#end
+							<th>操作</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+			</div>
+		</section>
     </div>
-    <el-table :key='tableKey' :data="list" v-loading.body="listLoading" border fit highlight-current-row style="width: 100%">
+<${include} "*/common/html/pageFooter.html"/>
+<!-- PAGE ASSETS END -->
+    <script>
+        $(function () {
+        	function formatDate(now) { 
+        	     var year=now.getFullYear(); 
+        	     var month=now.getMonth()+1; 
+        	     var date=now.getDate();
+        	     return year+"-"+month+"-"+date; 
+        	}
+            /** 表格初始化 BEGIN **/
+            var grid = new Datatable();
+            grid.init({
+                src: $("#data-table"),
+                onSuccess: function (grid) { },
+                onError: function (grid) { },
+                loadingMessage: '数据加载中...',
+                dataTable: {
+                    "columns": [
+                            {
+                                "data": "id",
+                                "sWidth": "16px"
+                            },
+                            #foreach($column in $columns)
+                             	#if($column.columnName != 'id')
+	                            	{
+	                                "data": "${column.columnName}",
+	                                "sWidth": "100px"
+	                            	},
+                            	#end
+							#end
+                            {
+                                "data": "id",
+                                "sWidth": "200px"
+                            }
+                    ],
+                    "columnDefs": [
+                        {
+                            "targets": [0],
+                            "render": function (data, type, full) {
+                                return '<label class="mt-checkbox mt-checkbox-outline"><input type="checkbox" value="' + data + '" name="test" /><span></span></label>';
+                            }
+                        },
+                        {
+                            "targets": [-1],
+                            "render": function (data, type, full) {
+                                return '<a href="javascript:void(0);" data-target="' + data + '" class="js_edit_row">编辑</a><a onclick="del(`'+data+'`)" data-target="' + data + '" class="js_delete_row">删除</a>';
+                            }
+                        }
+                    ],
+                    "drawCallback": function( settings ) {
+                        $(".js_edit_row").click(function(){
+                        	window.location.href=getRootPath() + '/${secondModuleName}/addView?id='+$(this).data("target");
+                        });
+                    },
+                    "pageLength": 10,
+                    "ajax": {
+                        "url": getRootPath() + '/${secondModuleName}/list',//将此处替换为接口地址
+                        "type": 'POST',
+						"dataType" : "json",
+                        "data": function (d) {
+							
+		                }
+                        /** ATTENTION: dataSrc可以对接口返回的数据进行处理，在此处使用了数组随机排序，用来打乱数据顺序，体现分页效果，改为接口地址后务必取消排序，直接使用接口返回的数据 **/
+                    }
+                }
+            });
+			  
+			 
+            /** 表格初始化 END **/
+            /** 表格上方工具栏搜索 **/
+            //点击查询，执行表格重新加载
+            $('#search-submit').click(function () {
+                grid.submitFilter();
+            });
+            //点击重置
+            $('#search-reset').click(function () {
+                $('#table-toolbar')[0].reset();
+                $("#data-table").DataTable().ajax.reload();
+            });
+			//点击添加跳转新页面
+			$('#table-add').click(function () {
+                window.location.href=getRootPath() + '/${secondModuleName}/addView';
+            });
 
-#foreach($column in $columns)
-  #if(${column.columnName} == 'delete_status'||${column.columnName} == 'id')
+			/**全选反选**/
+			$('body').on("click",'#checkall',function() {
+			
+				if($(this).prop('checked')==true){
+					$("input[name='test']").prop('checked',true);
+					$("input[name='test']") .parent("span").prop('class', "checked");
+				}else{
+					$("input[name='test']").prop('checked',false);
+					$("input[name='test']").parent("span").prop('class', "");
+				}
+			});
+            //点击批量删除
+            $('#table-delete').click(function () {
+            	//检查选中的数量
+                var selected = new Array();
+                $(".DTFC_LeftBodyLiner").children('table').children('tbody').find('input[name=test]').each(function() {
+                    var $this = $(this);
+                    if($this.is(":checked")){
+                    	console.log($(this).val());
+                        selected.push($(this).val());
+                    }
+                });
 
-  #else
-    <el-table-column width="200px" align="center" label="${column.comments}">
-      <template slot-scope="scope">
-        <span>{{scope.row.${column.attrname}}}</span>
-      </template>
-    </el-table-column>
-  #end
-#end
-      <el-table-column fixed="right" align="center" label="操作" width="150"> <template slot-scope="scope">
-        <el-button  size="small" type="success" @click="handleUpdate(scope.row)">编辑
-        </el-button>
-        <el-button  size="small" type="danger" @click="handleDelete(scope.row)">删除
-        </el-button>
-      </template> </el-table-column>
-    </el-table>
-    <div v-show="!listLoading" class="pagination-container">
-      <el-pagination @size-change="handleSizeChange" @current-change="handleCurrentChange" :current-page.sync="listQuery.page" :page-sizes="[10,20,30, 50]" :page-size="listQuery.limit" layout="total, sizes, prev, pager, next, jumper" :total="totalCount"> </el-pagination>
-    </div>
-    <el-dialog :title="textMap[dialogStatus]" :visible.sync="dialogFormVisible">
-      <el-form :model="form" :rules="rules" ref="form" label-width="100px">
-#foreach($column in $columns)
-  #if($column.columnName != 'id'&&$column.columnName != 'delete_status')
-    <el-form-item label="${column.comments}" prop="${column.attrname}">
-      <el-input v-model="form.${column.attrname}" placeholder="请输入${column.comments}"></el-input>
-    </el-form-item>
-  #end
-#end
-      </el-form>
-      <div slot="footer" class="dialog-footer">
-        <el-button @click="cancel('form')">取 消</el-button>
-        <el-button v-if="dialogStatus=='create'" type="primary" @click="create('form')">确 定</el-button>
-        <el-button v-else type="primary" @click="update('form')">确 定</el-button>
-      </div>
-    </el-dialog>
-  </div>
-</template>
-
-<script>
-  export default {
-    name: '${secondModuleName}',
-    data() {
-      return {
-        form: {
-#foreach($column in $columns)
-  #if($column.columnName != $pk.columnName)
-    ${column.attrname} : undefined#if($velocityCount != $columns.size()),#end
-  #end
-#end
-        },
-        rules: {
-#foreach($column in $columns)
-  #if($column.columnName != $pk.columnName)
-${column.attrname}: [
-  {
-    required: true,
-    message: '请输入${column.comments}',
-    trigger: 'blur'
-  },
-  {
-    min: 3,
-    max: 20,
-    message: '长度在 3 到 20 个字符',
-    trigger: 'blur'
-  }
-]#if($velocityCount != $columns.size()), #end#end
-#end
-        },
-        list: null,
-        totalCount: null,
-        listLoading: true,
-        listQuery: {
-          page: 1,
-          limit: 20,
-          name: undefined
-        },
-        dialogFormVisible: false,
-        dialogStatus: '',
-        textMap: {
-          update: '编辑',
-          create: '创建'
-        },
-        tableKey: 0
-      }
-    },
-    created() {
-      this.getList();
-    },
-    methods: {
-      getList() {
-          let _this=this;
-          this.listLoading = true;
-          this.api({
-              url: "/${secondModuleName}",
-              method: "get"
-          }).then(data => {
-              _this.listLoading = false;
-              _this.list = data.list;
-              _this.totalCount = data.totalCount;
-          })
-      },
-      handleFilter() {
-        this.getList();
-      },
-      handleSizeChange(val) {
-        this.listQuery.limit = val;
-        this.getList();
-      },
-      handleCurrentChange(val) {
-        this.listQuery.page = val;
-        this.getList();
-      },
-      handleCreate() {
-        this.resetTemp();
-        this.dialogStatus = 'create';
-        this.dialogFormVisible = true;
-      },
-      handleUpdate(row) {
-          this.form=row;
-        this.dialogFormVisible = true;
-        this.dialogStatus = 'update';
-      },
-      handleDelete(row) {
-        let _this = this
-        this.$confirm('此操作将永久删除, 是否继续?', '提示', {
-              confirmButtonText: '确定',
-              cancelButtonText: '取消',
-              type: 'warning'
-            })
-            .then(() => {
-                _this.api({
-                    url: "/${secondModuleName}"+'?id='+row.id,
-                    method: "delete"
-                }).then(() => {
-                    _this.getList()
-                }).catch(() => {
-                    _this.$message.error("删除失败")
-                })
-      });
-      },
-      create(formName) {
-          const set = this.$refs;
-          this.form.deleteStatus='1';
-          set[formName].validate(valid => {
-              if (valid) {
-                  this.api({
-                      url: "${secondModuleName}",
-                      method: "post",
-                      data: this.form
-                  }).then(() => {
-                      this.getList();
-                      this.dialogFormVisible = false
-                  })
-              } else {
-                  return false;
-              }
-          });
-      },
-      cancel(formName) {
-        this.dialogFormVisible = false;
-        const set = this.$refs;
-        set[formName].resetFields();
-      },
-      update(formName) {
-          const set = this.$refs;
-          set[formName].validate(valid => {
-              if (valid) {
-                  this.api({
-                      url: "${secondModuleName}",
-                      method: "put",
-                      data: this.form
-                  }).then(() => {
-                      this.getList();
-                      this.dialogFormVisible = false
-                  })
-              } else {
-                  return false;
-              }
-          });
-      },
-      resetTemp() {
-        this.form = {
-        };
-      }
-    }
-  }
-</script>
+                var check_num = selected.length;
+                if (check_num == 0) {
+                    layer.msg('请至少选择一条数据', { offset: '100px' });
+                }
+                else {
+                    layer.confirm('确认删除选中的' + check_num + '条数据？', { title: '批量删除', offset: '100px' }, function (index) {
+                        //打印选中删除的目录
+                        layer.close(index);
+                        //打开加载层
+                        layer.load(1, { offset: '100px' });
+                        var ids={
+                            idArr:selected
+                        }
+                        $.ajax({
+                            url: getRootPath() + "/${secondModuleName}/delete",
+                            type: "post",
+                            dataType: 'json',
+                            data:  JSON.stringify(ids),
+                            contentType : "application/json;charset=UTF-8",
+                            success: function (result) {
+                                layer.closeAll('loading');
+                                layer.msg("删除成功", function () {
+                                	$("#data-table").DataTable().ajax.reload();
+                                });
+                            },
+                            error: function (data) {
+                                layer.closeAll('loading');
+                                layer.msg("删除失败");
+                            }
+                        });
+                    });
+                }
+            });
+        });
+        function del(id) {
+	         var idArr = new Array();
+	         idArr.push(id);
+	         var ids={
+	             idArr:idArr
+	         }
+	         layer.confirm('确认删除该条信息？', { title: '删除', offset: '100px' }, function (index) {
+	             layer.close(index);
+	             //打开加载层
+	             layer.load(1, { offset: '100px' });
+	             $.ajax({
+	                 url: getRootPath() + "/${secondModuleName}/delete",
+	                 type: "POST",
+	                 dataType: 'json',
+	                 data:  JSON.stringify(ids),
+	                 contentType : "application/json;charset=UTF-8",
+	                 traditional: true,
+	                 success: function (result) {
+	                     layer.closeAll('loading');
+	                     layer.msg("删除成功", function () {
+	                    	 $("#data-table").DataTable().ajax.reload();
+	                     });
+	                 },
+	                 error: function (data) {
+	                     layer.closeAll('loading');
+	                     layer.msg("删除失败");
+	                 }
+	             });
+	         });
+	     };
+    </script>
+</body>
+</html>

@@ -5,8 +5,8 @@ spring:
   datasource:
     driver-class-name: com.mysql.jdbc.Driver
     username: root
-    password: admin
-    url: jdbc:mysql://192.168.197.15:3306/newdatadev?useUnicode=true&characterEncoding=UTF-8&allowMultiQueries=true&
+    password: 123456a?
+    url: jdbc:mysql://10.110.5.114:3306/dv_db_gop?useUnicode=true&characterEncoding=UTF-8&allowMultiQueries=true&
 
 mybatis:
    mapperLocations: classpath:/mapper/*.xml

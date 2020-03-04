@@ -1,45 +1,91 @@
 package ${package}.controller;
 
 import ${package}.service.${className}Service;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.DeleteMapping;
+import ${package}.entity.${className};
+import com.inspur.dsp.common.base.BaseController;
+import com.inspur.dsp.common.utils.GlobalIDUtils;
+import com.inspur.dsp.common.utils.ParamUtil;
+
+import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
+import com.baomidou.mybatisplus.plugins.Page;
 
-
-import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.ResponseBody;
+import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RequestBody;
-import com.heeexy.example.util.CommonUtil;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.ModelMap;
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 
-@RestController
-@RequestMapping("${secondModuleName}")
-public class ${className}Controller {
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
+@Controller
+@RequestMapping("/${secondModuleName}")
+public class ${className}Controller extends BaseController{
 
     @Autowired
     private ${className}Service ${classname}Service;
 
-    @PostMapping
-    public JSONObject insert(@RequestBody JSONObject requestJson) {
-        return ${classname}Service.insert(requestJson);
+	@RequestMapping("/index")
+	public String index(ModelMap modelMap) {
+		return this.getView("/${secondModuleName}/index", modelMap);
+	}
+	
+	/**
+     * 新增、编辑页面
+     */
+    @RequestMapping("/addView")
+    public String addView(ModelMap modelMap, String id) {
+        if(StringUtils.isNotEmpty(id)) { // 编辑使用
+        	${className} ${classname} = ${classname}Service.selectById(id);
+            modelMap.put("${className}", ${classname});
+            return this.getView("/${secondModuleName}/edit", modelMap);
+        }else {
+        	return this.getView("/${secondModuleName}/add", modelMap);
+        }
     }
 
-    @PutMapping
-    public JSONObject update(@RequestBody JSONObject requestJson) {
-        return ${classname}Service.update(requestJson);
+    @RequestMapping("/list")
+    @ResponseBody
+    public void list(HttpServletRequest request) {
+    	int offset = this.getParaInt("start");
+		int limit = this.getParaInt("length");
+		int draw = ParamUtil.getInteger(request, "draw", 1);
+		String workName = this.getPara("taskName", "");
+		Page<${className}> page = new Page<>(); 
+		page.setSize(limit);
+		page.setCurrent((offset + limit) / limit);
+		Map<String , Object> param = new HashMap<String, Object>();
+		Page<${className}> tasks = ${classname}Service.get${className}ByPage(page , param);
+		this.renderJson(this.toDataTable(tasks, draw).toString());
+    }
+    
+    /**
+     * 保存信息
+     */
+    @ResponseBody
+    @RequestMapping(value = "/save", method = RequestMethod.POST)
+    public void save(@RequestBody ${className} ${classname} ,HttpServletResponse response) {
+    	if(null == ${classname}.getId()) { // 新增
+    		${classname}.setId(GlobalIDUtils.getUUid32());
+    	}
+        ${classname}Service.insertOrUpdate(${classname});
+        this.ajaxDoneSuccess(response, "保存成功");
     }
 
-    @DeleteMapping
-    public JSONObject delete(HttpServletRequest request) {
-        return ${classname}Service.delete(Long.valueOf(request.getParameter("id")));
-    }
+    /**
+     * 删除
+     */
+    @RequestMapping(value = "/delete", method = RequestMethod.POST)
+    public void delete(HttpServletResponse response, @RequestBody JSONObject param) {
+    	JSONArray idArr = param.getJSONArray("idArr");
+    	${classname}Service.deleteBatchIds(JSONArray.parseArray(idArr.toJSONString(), String.class));
 
-    @GetMapping
-    public JSONObject list(HttpServletRequest request) {
-        JSONObject jsonObject=CommonUtil.request2Json(request);
-        return ${classname}Service.list(jsonObject);
+        this.ajaxDoneSuccess(response, "删除成功");
     }
 }

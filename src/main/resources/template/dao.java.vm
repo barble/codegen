@@ -1,7 +1,8 @@
 package ${package}.dao;
 
 import com.alibaba.fastjson.JSONObject;
-import com.heeexy.example.util.CommonUtil;
+import com.baomidou.mybatisplus.mapper.BaseMapper;
+import ${package}.entity.${className};
 import java.util.List;
 /**
  * ${comments}
@@ -11,7 +12,7 @@ import java.util.List;
  * @date ${datetime}
  */
 
-public interface ${className}Dao {
+public interface ${className}Dao extends BaseMapper<${className}> {
     int update(JSONObject jsonObject);
 
     int insert(JSONObject jsonObject);

@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="utf-8" />
+    <title>${comments}添加</title>
+    <meta name="description" content="${comments}添加">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="renderer" content="webkit">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <${include} "*/common/html/pageHeader.html"/>
+</head>
+<body>
+    <div class="m-main">
+		<section class="panel panel-default">
+			<header class="panel-heading">
+                <h3 class="panel-title">${comments}添加</h3>
+            </header>
+			<div class="panel-body">
+				<form class="form-horizontal" id="formTlbz">
+					#foreach($column in $columns)
+  						#if($column.columnName != 'id')
+	                    <div class="form-group">
+	                        <label class="col-sm-3 control-label"><span class="required"> * </span>${column.comments}</label>
+	                        <div class="col-sm-6">
+	                        	<input type="text" id="${column.columnName}" placeholder="请输入${column.comments}" name="${column.columnName}" class="form-control">
+	                        </div>
+	                    </div>
+                     	#end
+					#end
+                </form>
+				<div class="form-group">
+					<div class="col-sm-offset-3 col-sm-9">
+						<button type="button" class="btn btn-primary" id="submitData">提交</button>
+						<button type="button" class="btn btn-default" id="cancel">取消</button>
+					</div>
+				</div>
+			</div>
+		</section>
+    </div>
+	<${include} "*/common/html/pageFooter.html"/>
+    <script>
+        $(function () {
+            var form = $("#formTlbz");
+            form.validate({
+                errorElement: "span",
+                errorClass: "help-block help-block-error",
+                focusInvalid: !1,
+                ignore: "",
+                rules: {
+                	#foreach($column in $columns)
+  						#if($column.columnName != 'id')
+  						${column.columnName}: {
+                        	required: true
+                    	}#if($velocityCount != $columns.size()),#end
+  						#end
+  					#end
+                },
+                messages: {
+               		#foreach($column in $columns)
+  						#if($column.columnName != 'id')
+  						${column.columnName}: {
+                        	required: "<i class=\"fa fa-times-circle\"></i> 请输入${column.comments}"
+                    	}#if($velocityCount != $columns.size()),#end
+  						#end
+  					#end
+                },
+                invalidHandler: function (e, t) {
+                },
+                highlight: function (e) {
+                    $(e).closest(".form-group").addClass("has-error")
+                },
+                unhighlight: function (e) {
+                    $(e).closest(".form-group").removeClass("has-error")
+                },
+                success: function (e) {
+                    e.closest(".form-group").removeClass("has-error")
+                },
+                submitHandler: function (e) {
+                },
+                errorPlacement: function (e, r) {
+                    r.parent(".input-group").size() > 0 ? e.insertAfter(r.parent(".input-group")) : r.attr("data-error-container") ? e.appendTo(r.attr("data-error-container")) : r.parents(".radio-list").size() > 0 ? e.appendTo(r.parents(".radio-list").attr("data-error-container")) : r.parents(".radio-inline").size() > 0 ? e.appendTo(r.parents(".radio-inline").attr("data-error-container")) : r.parents(".checkbox-list").size() > 0 ? e.appendTo(r.parents(".checkbox-list").attr("data-error-container")) : r.parents(".checkbox-inline").size() > 0 ? e.appendTo(r.parents(".checkbox-inline").attr("data-error-container")) : e.insertAfter(r)
+                },
+            })
+        });
+		
+		$("#submitData").click(function(){
+			if($("#formTlbz").valid()){
+				$("#submitData").attr("disabled","true");
+				var formObject = {};
+		        var formArray =$("#formTlbz").serializeArray();
+		        $.each(formArray,function(i,item){
+		        	if(item.name=="rq"){
+		        		formObject[item.name] = new Date(item.value);
+		        	}else{
+		        		formObject[item.name] = item.value;
+		        	}
+		        });
+				$.ajax({
+					type : 'POST',
+					datatype : 'text',
+				    url : getRootPath()+"/${classname}/save",
+				    data : JSON.stringify(formObject),
+				    contentType : "application/json",
+				    success : function (data) {
+				    	layer.msg(data.msg,function(){
+				    		history.back(-1);
+				    	});
+				    },
+				    failure : function(data){
+				        layer.msg(data.msg);
+				    	return false;
+					}
+				});
+			}
+		});
+		$("#cancel").click(function(){
+			history.back(-1)
+		});
+    </script>
+</body>
+
+</html>

@@ -30,12 +30,14 @@ public class GeneratorUtils {
 
     public static List<String> getTemplates() {
         List<String> templates = new ArrayList<String>();
-        //templates.add("template/index.js.vm");
-        templates.add("template/index.vue.vm");
-        templates.add("template/mapper.xml.vm");
+//        templates.add("template/index.js.vm");
+        templates.add("template/index.html.vm");
+        templates.add("template/add.html.vm");
+        templates.add("template/edit.html.vm");
+//        templates.add("template/mapper.xml.vm");
         templates.add("template/service.java.vm");
         templates.add("template/serviceimpl.java.vm");
-        //templates.add("template/entity.java.vm");
+        templates.add("template/entity.java.vm");
         templates.add("template/dao.java.vm");
         templates.add("template/controller.java.vm");
         return templates;
@@ -56,7 +58,7 @@ public class GeneratorUtils {
         String className = tableToJava(tableEntity.getTableName(), config.getString("tablePrefix"));
         tableEntity.setClassName(className);
         tableEntity.setClassname(StringUtils.uncapitalize(className));
-
+        tableEntity.setComments(table.get("tableComment"));
         //列信息
         List<ColumnEntity> columsList = new ArrayList<>();
         for (Map<String, String> column : columns) {
@@ -109,6 +111,9 @@ public class GeneratorUtils {
         map.put("datetime", DateUtils.format(new Date(), DateUtils.DATE_TIME_PATTERN));
         map.put("moduleName", config.getString("mainModule"));
         map.put("secondModuleName", toLowerCaseFirstOne(className));
+        map.put("include", "#include");
+        map.put("freemarkerPrefx", "${");
+        map.put("freemarkerSubfx", "!}");
         VelocityContext context = new VelocityContext(map);
 
         //获取模板列表
@@ -165,19 +170,24 @@ public class GeneratorUtils {
      */
     public static String getFileName(String template, String className, String packageName, String moduleName) {
         String packagePath = "main" + File.separator + "java" + File.separator;
-        String frontPath = "ui" + File.separator;
+        String frontPath = "main" + File.separator+"resources"+File.separator;
         if (StringUtils.isNotBlank(packageName)) {
             packagePath += packageName.replace(".", File.separator) + File.separator;
         }
 
         if (template.contains("index.js.vm")) {
-            return frontPath + "api" + File.separator + moduleName + File.separator + toLowerCaseFirstOne(className) + File.separator + "index.js";
+            return frontPath + "static" + File.separator+ "js" + File.separator + toLowerCaseFirstOne(className) + File.separator + "index.js";
         }
 
-        if (template.contains("index.vue.vm")) {
-            return frontPath + "views" + File.separator + moduleName + File.separator + toLowerCaseFirstOne(className) + File.separator + "index.vue";
+        if (template.contains("index.html.vm")) {
+            return frontPath + "templates"  + File.separator + toLowerCaseFirstOne(className) + File.separator + "index.html";
         }
-
+        if (template.contains("add.html.vm")) {
+            return frontPath +"templates" + File.separator + toLowerCaseFirstOne(className) + File.separator + "add.html";
+        }
+        if (template.contains("edit.html.vm")) {
+            return frontPath +"templates" + File.separator + toLowerCaseFirstOne(className) + File.separator + "edit.html";
+        }
         if (template.contains("service.java.vm")) {
             return packagePath + "service" + File.separator + className + "Service.java";
         }
@@ -187,11 +197,11 @@ public class GeneratorUtils {
         }
 
         if (template.contains("dao.java.vm")) {
-            return packagePath + "dao" + File.separator +"mysql"+File.separator+ className + "Dao.java";
+            return packagePath + "dao" + File.separator + className + "Dao.java";
         }
-//        if (template.contains("entity.java.vm")) {
-//            return packagePath + "entity" + File.separator + className + ".java";
-//        }
+        if (template.contains("entity.java.vm")) {
+            return packagePath + "entity" + File.separator + className + ".java";
+        }
         if (template.contains("controller.java.vm")) {
             return packagePath + "controller" + File.separator + className + "Controller.java";
         }

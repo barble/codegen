@@ -3,6 +3,7 @@ package com.demo.shrek.controller;
 import com.demo.shrek.service.SysGeneratorService;
 import lombok.AllArgsConstructor;
 import org.apache.commons.io.IOUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
@@ -18,7 +19,8 @@ import java.io.IOException;
 @RequestMapping("/generator")
 public class SysGeneratorController {
 
-	private final SysGeneratorService sysGeneratorService;
+	@Autowired
+	private SysGeneratorService sysGeneratorService ;
 
 	/**
 	 * 生成代码

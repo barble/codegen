@@ -1,11 +1,18 @@
 package ${package}.service.impl;
 
 
-import ${package}.dao.mysql.${className}Dao;
+import ${package}.dao.${className}Dao;
 import com.alibaba.fastjson.JSONObject;
+import ${package}.entity.${className};
 import ${package}.service.${className}Service;
-import com.heeexy.example.util.CommonUtil;
+import com.baomidou.mybatisplus.service.impl.ServiceImpl;
+import com.baomidou.mybatisplus.mapper.EntityWrapper;
+import com.baomidou.mybatisplus.mapper.Wrapper;
+import com.baomidou.mybatisplus.plugins.Page;
+
 import java.util.List;
+import java.util.Map;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -17,34 +24,16 @@ import org.springframework.stereotype.Service;
  * @date ${datetime}
  */
 @Service
-public class ${className}ServiceImpl implements ${className}Service {
+public class ${className}ServiceImpl extends ServiceImpl<${className}Dao,${className}> implements ${className}Service {
 
     @Autowired
     private ${className}Dao ${classname}Dao;
 
     @Override
-    public JSONObject update(JSONObject jsonObject){
-        ${classname}Dao.update(jsonObject);
-        return CommonUtil.successJson();
-    }
-
-    @Override
-    public JSONObject insert(JSONObject jsonObject){
-        ${classname}Dao.insert(jsonObject);
-        return CommonUtil.successJson();
-    }
-
-    @Override
-    public JSONObject list(JSONObject jsonObject){
-        CommonUtil.fillPageParam(jsonObject);
-        int count = ${classname}Dao.count(jsonObject);
-        List<JSONObject> list = ${classname}Dao.listByPage(jsonObject);
-        return CommonUtil.successPage(jsonObject, list, count);
-    }
-
-    @Override
-    public JSONObject delete (Long id){
-        ${classname}Dao.delete(id);
-        return CommonUtil.successJson();
-    }
+	public Page<${className}> get${className}ByPage(Page<${className}> page, Map<String, Object> param) {
+		Wrapper<${className}> wrapper = new EntityWrapper<>();
+		List<${className}> tasks = ${classname}Dao.selectList(wrapper);
+		page.setRecords(tasks);
+		return page;
+	}
 }
